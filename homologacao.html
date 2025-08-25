@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homologar Inscrições</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<link href="homologacao.css" rel="stylesheet">
+</head>
+<body>
+
+<div id="meuModal" class="modal">
+    <div class="modal-content">
+        <span class="fechar">&times;</span><span> </span>
+        <p id="mensagemModal"></p>
+    </div>
+</div>
+
+<div class="container">
+<div class="header">
+    <h1>Homologar Inscrições</h1>
+</div>
+<div id="loading-message" class="load-message">
+    <i class="fas fa-spinner fa-spin mr-2"></i> Carregando dados...
+</div>
+<div id="no-data-message" class="error-message">
+    Nenhum dado encontrado no Local Storage. Por favor, processe uma planilha na página inicial.
+</div>
+<br>
+
+<details id="options-panel" class="options-panel">
+    <summary>Mostrar / Ocultar Campos</summary>
+    <div id="options-grid" class="options-panel-grid">
+    </div>
+</details>
+
+<div id="grouping-panel" class="grouping-panel-box">
+    <span class="agrupamento-titulo">Opções de Agrupamento</span>
+    <div id="grouping-fields-container">
+    </div>
+    <button id="add-group-field-btn" class="nav-btn add-group-btn"><i class="fas fa-plus"></i> Adicionar Nível de Agrupamento</button>
+</div>
+
+<div id="undecided-info-box" class="undecided-info-box">
+    <h3 id="undecided-title"></h3>
+    <div class="status-badges">
+        <button id="deferidos-badge" class="status-badge-button" style="display: none;"><i class="fas fa-check"></i> Deferidas: 0</button>
+        <button id="undecided-badge" class="status-badge-button" style="display: none;"><i class="fas fa-exclamation-triangle"></i> Pendentes: 0</button>
+        <button id="indeferidos-badge" class="status-badge-button" style="display: none;"><i class="fas fa-times"></i> Indeferidas: 0</button>
+        
+    </div>
+    <button id="generateReportBtn" class="nav-btn generate-report-btn" style="display: none; margin-top: 15px;"><i class="fas fa-file-word"></i> Gerar Relatório</button>
+</div>
+
+<div id="searchBar" class="search-bar">
+    <i class="fas fa-search"></i>
+    <input type="text" id="searchInput" placeholder="Pesquisar por nome, e-mail, CPF...">
+</div>
+
+<div id="data-display-container">
+</div>
+
+<div id="navigation-controls" class="navigation-controls" style="display: none;">
+    <button id="backToGroupsBtn" class="nav-btn back-to-groups-btn"><i class="fas fa-arrow-left"></i> Voltar para Grupos</button>
+    <button id="prevBtn" class="nav-btn"><i class="fas fa-chevron-left"></i> Anterior</button>
+    <span id="counter"></span>
+    <button id="nextBtn" class="nav-btn"><i class="fas fa-chevron-right"></i> Próximo</button>
+</div>
+<div id="single-card-view" style="display: none;">
+</div>
+    
+</div>
+
+<script src="homologacao.js"></script>
+<script
+  src='https://cdn.jotfor.ms/agent/embedjs/019891ac22567a5e8e5d7ed1d03e6e229e4f/embed.js?skipWelcome=1&maximizable=1'>
+</script>
+</body>
+<button onclick="scrollToTop()" id="backToTopBtn" title="Voltar ao Topo"><i class="fas fa-arrow-up"></i></button>
+  
+</html>
