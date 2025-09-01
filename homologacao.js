@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCardIndex = 0;
 
 
+
     // Função para mostrar o modal com a mensagem e aplicar a cor de fundo
     function mostrarModal(mensagem, categoria) {
     
@@ -208,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data.forEach(item => {
             let currentLevel = grouped;
             groupingKeys.forEach((key, index) => {
-                const groupKey = item[key] || 'Não informado';
+                const groupKey = item[key] || 'Não informado!';
                 if (index === groupingKeys.length - 1) {
                     if (!currentLevel[groupKey]) {
                         currentLevel[groupKey] = [];
@@ -424,15 +425,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     value = linksHtml;
                 } else if (value === null || value === undefined || value === '') {
-                    value = 'Não informado';
+                    value = 'Não informado!';
                 }
-
+                
+                if(value === 'Não informado!' || value === 'Não'){
+                  html += `
+                    <div class="data-field ${fieldClass}">
+                        <strong>${key}</strong>
+                        <p><label id="lbl_valor_negativo">${value}</label></p>
+                    </div>
+                `;
+                  
+                }
+                else
+                if(value === 'Sim'){
+                  html += `
+                    <div class="data-field ${fieldClass}">
+                        <strong>${key}</strong>
+                        <p><label id="lbl_valor_positivo">${value}</label></p>
+                    </div>
+                `;
+                  
+                }
+                else
                 html += `
                     <div class="data-field ${fieldClass}">
                         <strong>${key}</strong>
                         <p>${value}</p>
                     </div>
                 `;
+                  
             }
         }
 
@@ -441,23 +463,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${decision.status ? `
                     <h3>Status da Inscrição</h3>
                     <span class="status-badge ${decision.status}">${decision.status}</span>
-                    ${decision.motivo ? `<p class="status-justificativa">Motivo: ${decision.motivo}</p>` : ''}
+                    ${decision.motivo ? `<h3>Motivo:</h3><p class="status-justificativa">${decision.motivo}</p>` : ''}
                     <button class="nav-btn clear-decision-btn" data-id="${uniqueId}">Limpar Decisão</button>
                 ` : `
                     <h3>Avaliar Inscrição</h3>
                     <div class="decision-buttons">
-                        <button class="decision-btn deferida" data-id="${uniqueId}" data-status="deferida">Deferida</button>
-                        <button class="decision-btn indeferida" data-id="${uniqueId}" data-status="indeferida">Indeferida</button>
+                        <button class="decision-btn deferida" data-id="${uniqueId}" data-status="deferida"><i class="fas fa-check"></i>Deferida</button>
+                        <button class="decision-btn indeferida" data-id="${uniqueId}" data-status="indeferida"><i class="fas fa-times"></i>Indeferida</button>
                     </div>
                     <div class="justificativa-area">
                         <label for="justificativa-${uniqueId}">Motivo do indeferimento:</label>
-                        <textarea id="justificativa-${uniqueId}" rows="3" placeholder="Digite o motivo aqui..."></textarea>
+                        <textarea id="justificativa-${uniqueId}" rows="5" placeholder="Digite o motivo aqui..."></textarea>
                         <button class="nav-btn save-justificativa-btn" data-id="${uniqueId}">Salvar</button>
                     </div>
                 `}
             </div>
         `;
 
+
+      
         cardWrapper.innerHTML = decisionCardHtml + html;
         addDecisionListeners(cardWrapper, uniqueId);
         return cardWrapper;
@@ -475,6 +499,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = createRecordCard(currentItem, currentCardIndex);
             singleCardView.appendChild(card);
             addDocumentLinkListeners(card);
+
+
+            const decisionCards = document.querySelectorAll('.decision-card');
+
+            decisionCards.forEach(card => {
+                console.log('Decision funcionando!');
+                let isDragging = false;
+                let initialX;
+                let initialY;
+                let xOffset = 0;
+                let yOffset = 0;
+        
+                // 2. Evento de clique inicial (mousedown)
+                card.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    card.classList.add('dragging'); // Adiciona a classe 'dragging' para o estilo CSS
+        
+                    // Salva a posição inicial do clique
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                });
+        
+                // 3. Evento de movimento do mouse (mousemove)
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        e.preventDefault(); // Evita o comportamento padrão do navegador
+                        
+                        // Calcula a nova posição
+                        xOffset = e.clientX - initialX;
+                        yOffset = e.clientY - initialY;
+                        
+                        // Aplica a nova posição ao cartão usando a propriedade 'transform'
+                        // 'transform' é mais performático que 'top' e 'left' para animações
+                        card.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+                    }
+                });
+        
+                // 4. Evento de soltar o clique (mouseup)
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    card.classList.remove('dragging'); // Remove a classe 'dragging'
+                });
+            });
+
+          
         }
         updateNavigationButtons();
     }
@@ -838,6 +907,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateWordReport() {
         const groupedData = getGroupedData(processedData);
         const groupingKeys = Array.from(groupingFieldsContainer.querySelectorAll('select')).map(s => s.value).filter(v => v !== "");
+        console.log(groupedData);
+        console.log(groupingKeys);
         
         const reportContent = renderReportRecursiveHtml(groupedData, groupingKeys);
 

@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const downloadPdfBtn = document.getElementById('downloadPdfBtn');
   const groupingFieldsSection = document.getElementById('groupingFieldsSection');
   const groupingFieldsContainer = document.getElementById('groupingFieldsContainer');
+  const containerCheck = document.querySelector('.checkbox-container');
+  const buttonOrdem = document.getElementById('sortByNameCheckbox');
   
   let workbook = null;
   let cleanedData = [];
@@ -152,15 +154,15 @@ document.addEventListener('DOMContentLoaded', function() {
               const dateKey = currentHeaders.find(h => h.toLowerCase().includes('submission date') || h.toLowerCase().includes('data de envio'));
   
               if (!dateKey) {
-                  setStatusMessage('Erro: A planilha deve conter a coluna "Submission Date" ou "Data de Envio".', 'error');
-                  mostrarModal('Erro: A planilha deve conter a coluna "Submission Date" ou "Data de Envio"!','error');
+                  setStatusMessage('Erro: A planilha deve conter a coluna "Submission Date".', 'error');
+                  mostrarModal('Erro: A planilha deve conter a coluna "Submission Date".','error');
                   return;
               }
   
               showPreview(jsonData);
               populateGroupingFields(currentHeaders);
               processBtn.disabled = false;
-              setStatusMessage('Arquivo carregado. Selecione os campos de duplicidade e clique em Processar.', 'success');
+              setStatusMessage('Arquivo carregado. Selecione os campos para a análise de duplicidade e clique em Processar.', 'success');
               mostrarModal('Arquivo carregado. Selecione os campos para a análise de duplicidade e clique em Processar!', 'success');
   
           } catch (error) {
@@ -206,6 +208,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   processBtn.addEventListener('click', function(e) {
+      containerCheck.style.display = 'flex';
+    
       if (this.disabled) {
           e.preventDefault();
           setStatusMessage('Processamento concluído! O botão "Processar Planilha" foi desativado. Para processar um novo arquivo, selecione-o.', 'neutral');
@@ -338,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
   
           cleanedData.push(mostRecent);
+          
   
           if (group.length > 1) {
               const diffFields = {};
@@ -368,6 +373,8 @@ document.addEventListener('DOMContentLoaded', function() {
               });
           }
       });
+
+      console.log(cleanedData);
   
       originalCount.textContent = jsonData.length;
       uniqueCount.textContent = cleanedData.length;
@@ -467,8 +474,27 @@ document.addEventListener('DOMContentLoaded', function() {
       const parsed = moment.tz(dateValue, 'America/Sao_Paulo');
       return parsed.isValid() ? parsed : null;
   }
+
   
   homologacaoBtn.addEventListener('click', function() {
+
+      if (buttonOrdem.checked){
+        cleanedData.sort((a, b) => {
+          const nomeA = a["Nome:"].toUpperCase(); // Converte para maiúsculas para garantir a ordem correta
+          const nomeB = b["Nome:"].toUpperCase(); // Converte para maiúsculas para garantir a ordem correta
+        
+          if (nomeA < nomeB) {
+            return -1;
+          }
+          if (nomeA > nomeB) {
+            return 1;
+          }
+        
+          return 0;
+        });
+        
+      }
+      
       localStorage.setItem('processedData', JSON.stringify({
           data: cleanedData,
           viewType: 'homologacao'

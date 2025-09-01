@@ -28,6 +28,19 @@
   .differences-table-cell-kept {
       background-color: #d1fae5 !important;
   }
+
+  .checkbox-container {
+    display: none;
+    align-items: center;
+    margin-top: 10px;
+  }
+  
+  #sortByNameCheckbox {
+      margin-right: 5px;
+      color: #3498db;
+  }
+
+  
   /* Novas classes para as cores do texto */
   .status-message-success {
       color: #2ecc71; /* Verde */
@@ -91,6 +104,8 @@
     font-size: 28px;
     font-weight: bold;
   }
+
+  
   
 </style>
 
@@ -186,6 +201,10 @@
                 </div>
                 <div id="statusMessage" class="text-sm italic text-center sm:text-right status-message-neutral">Aguardando arquivo...</div>
             </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="sortByNameCheckbox" checked>
+                <label for="sortByNameCheckbox" class="text-blue-700">Ordenar nomes em ordem alfabética</label>
+            </div>
         </div>
     </div>
 
@@ -205,7 +224,7 @@
             </div>
 
             <div class="mb-6" id="duplicatesSection">
-                <h3 class="font-semibold text-red-500 mb-2 text-lg">Registros Duplicados Encontrados!</h3>
+                <h3 class="font-semibold text-red-500 mb-2 text-lg">Registros Duplicados Encontrados:</h3>
                 <div class="overflow-x-auto max-h-60 overflow-y-auto rounded-lg border border-gray-200 shadow-sm">
                     <table class="min-w-full divide-y divide-gray-200" id="duplicatesTable">
                         <thead class="bg-gray-100 sticky top-0">
@@ -238,7 +257,7 @@
                         </table>
                     </div>
                 </div>
-                <p class="mt-2 text-sm text-gray-500">* Valores em verde foram mantidos como os mais recentes.</p>
+                <p class="mt-2 text-sm text-gray-500">* Valores em verde foram mantidos como os mais recentes!</p>
             </div>
         </div>
     </div>
