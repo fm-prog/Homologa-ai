@@ -17,12 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const groupingFieldsSection = document.getElementById('groupingFieldsSection');
   const groupingFieldsContainer = document.getElementById('groupingFieldsContainer');
   const containerCheck = document.querySelector('.checkbox-container');
-  const buttonOrdem = document.getElementById('sortByNameCheckbox'); 
+  const buttonOrdem = document.getElementById('sortByNameCheckbox');
+  
   let workbook = null;
   let cleanedData = [];
   let duplicatesInfo = [];
   let currentHeaders = [];
-  let semHora = false;
 
   // Função para mostrar o modal com a mensagem e aplicar a cor de fundo
   function mostrarModal(mensagem, categoria) {
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Verifica se há mensagens de flash
   if (typeof flashMessages !== 'undefined' && flashMessages.length > 0) {
-
+      
     // Itera sobre as mensagens e exibe a primeira (ou todas, se desejar)
     flashMessages.forEach(([categoria, mensagem]) => {
   
@@ -232,15 +232,8 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
           try {
               processData(selectedFields);
-
-              if (semHora){
-              mostrarModal('A coluna "submission date" não contém Hora, Minuto ou Segundo, o padrão 00:00 foi definido!<br>A acurácia para determinar a inscrição mais recente diminuiu!','info');
-              }else
-              mostrarModal('Processamento concluído!', 'success');
-
               setStatusMessage('Processamento concluído! Os dados estão prontos.', 'success');
-            
-
+              mostrarModal('Processamento concluído!', 'success');
               homologacaoBtn.classList.remove('hidden');
               homologacaoBtn.disabled = false;
               if (duplicatesInfo.length > 0) {
@@ -257,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
               setStatusMessage('Erro no processamento: ' + error.message, 'error');
               mostrarModal('Erro no processamento: ' + error.message, 'error');
           }
-      }, 3000);
+      }, 100);
   });
   
   
@@ -305,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const dateKey = Object.keys(firstRow).find(key => key.toString().toLowerCase().includes('submission date') || key.toString().toLowerCase().includes('data de envio'));
   
       if (!dateKey) {
-          throw new Error('Coluna "Submission Date" ou "Data de Envio" é necessária');
+          throw new Error('Coluna "Submission Date" é necessária');
       }
       
       const groupedData = {};
@@ -323,6 +316,8 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           groupedData[groupKeyValues].push(row);
       });
+
+
   
       cleanedData = [];
       duplicatesInfo = [];
@@ -330,11 +325,12 @@ document.addEventListener('DOMContentLoaded', function() {
       Object.keys(groupedData).forEach(key => {
           const group = groupedData[key];
           if (group.length === 0) return;
+
   
           let mostRecent = group[0];
-          //console.log(mostRecent[dateKey]);
           let mostRecentDate = parseDate(mostRecent[dateKey]);
-          //console.log(mostRecentDate);
+
+          
   
           group.forEach((row) => {
               const currentDate = parseDate(row[dateKey]);
@@ -372,6 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   const value = group[0][key] ? group[0][key].toString().trim() : '';
                   return `${formattedKey} ${value}`;
               }).join(', ');
+              
   
               duplicatesInfo.push({
                   groupingFields: groupingFieldsDisplay,
@@ -384,6 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       console.log(cleanedData);
+
   
       originalCount.textContent = jsonData.length;
       uniqueCount.textContent = cleanedData.length;
@@ -452,135 +450,78 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
   
-  // Array que associa cada regex a uma função de parse
-const regexParsers = [
-  // 09/01/2025 - OK
-  {
-    regex: /^(\d{2})\/(\d{2})\/(\d{4})$/,
-    parse: (match) => ({ day: parseInt(match[1]), month: parseInt(match[2]) -1, year: parseInt(match[3]) })
-  },
-  // set 1, 2025 - OK
-  {
-    regex: /^([a-zA-Z]{3}) (\d{1,2}), (\d{4})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]) })
-  },
-  // set 1, 2025 - Ok
-  {
-    regex: /^([a-zA-Z]{3})\. (\d{1,2}), (\d{4})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]) })
-  },
-  // setembro 1, 2025 - Ok
-  {
-    regex: /^([a-zA-Záàâãéèêíïóôõöúçñ\s]+) (\d{1,2}), (\d{4})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]) })
-  },
-  // Seg, set 1, 2025 - Ok
-  {
-    regex: /^[a-zA-Záàâãéèêíïóôõöúçñ]+, ([a-zA-Z]{3})\. (\d{1,2}), (\d{4})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]) })
-  },
-  // Segunda-feira, setembro 1, 2025 - OK
-  {
-    regex: /^[a-zA-Záàâãéèêíïóôõöúçñ-]+, ([a-zA-Záàâãéèêíïóôõöúçñ]+) (\d{1,2}), (\d{4})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]) })
-  },
-  // set 1, 2025 18:47 - OK
-  {
-    regex: /^([a-zA-Z]{3})\. (\d{1,2}), (\d{4}) (\d{2}):(\d{2})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]), hour: parseInt(match[4]), minute: parseInt(match[5]) })
-  },
-  // setembro 1, 2025 18:47 - OK
-  {
-    regex: /^([a-zA-Záàâãéèêíïóôõöúçñ\s]+) (\d{1,2}), (\d{4}) (\d{2}):(\d{2})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]), hour: parseInt(match[4]), minute: parseInt(match[5]) })
-  },
-  // Seg, set 1, 2025 18:47 - OK
-  {
-    regex: /^[a-zA-Záàâãéèêíïóôõöúçñ]+, ([a-zA-Z]{3})\. (\d{1,2}), (\d{4}) (\d{2}):(\d{2})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]), hour: parseInt(match[4]), minute: parseInt(match[5]) })
-  },
-  // Segunda-feira, setembro 1, 2025 18:47 - OK
-  {
-    regex: /^[a-zA-Záàâãéèêíïóôõöúçñ-]+, ([a-zA-Záàâãéèêíïóôõöúçñ]+) (\d{1,2}), (\d{4}) (\d{2}):(\d{2})$/,
-    parse: (match) => ({ month: match[1], day: parseInt(match[2]), year: parseInt(match[3]), hour: parseInt(match[4]), minute: parseInt(match[5]) })
-  },
-  // 2025-09-01 18:47:55 - OK
-  {
-    regex: /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/,
-    parse: (match) => ({ year: parseInt(match[1]), month: parseInt(match[2]) - 1, day: parseInt(match[3]), hour: parseInt(match[4]), minute: parseInt(match[5]), second: parseInt(match[6]) })
-  },
-  // 01-09-2025 18:47:55 - OK
-  {
-    regex: /^(\d{2})-(\d{2})-(\d{4}) (\d{2}):(\d{2}):(\d{2})$/,
-    parse: (match) => ({ day: parseInt(match[1]), month: parseInt(match[2]) - 1, year: parseInt(match[3]), hour: parseInt(match[4]), minute: parseInt(match[5]), second: parseInt(match[6]) })
-  },
-  // 2025/09/01 18:47:55 - OK
-  {
-    regex: /^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})$/,
-    parse: (match) => ({ year: parseInt(match[1]), month: parseInt(match[2]) - 1, day: parseInt(match[3]), hour: parseInt(match[4]), minute: parseInt(match[5]), second: parseInt(match[6]) })
-  },
-  // 01/09/2025 18:47:55 - OK
-  {
-    regex: /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})$/,
-    parse: (match) => ({ day: parseInt(match[1]), month: parseInt(match[2]) - 1, year: parseInt(match[3]), hour: parseInt(match[4]), minute: parseInt(match[5]), second: parseInt(match[6]) })
-  }
-  ];
-  
   const monthMap = {
-      'jan': 0, 'fev': 1, 'mar': 2, 'abr': 3, 'mai': 4,
-      'jun': 5, 'jul': 6, 'ago': 7, 'set': 8, 'out': 9,
-      'nov': 10, 'dez': 11,
-      'janeiro': 0, 'fevereiro': 1, 'março': 2, 'abril': 3,
-      'maio': 4, 'junho': 5, 'julho': 6, 'agosto': 7,
-      'setembro': 8, 'outubro': 9, 'novembro': 10, 'dezembro': 11
+      'jan.': 0, 'fev.': 1, 'mar.': 2, 'abr.': 3, 'mai.': 4,
+      'jun.': 5, 'jul.': 6, 'ago.': 7, 'set.': 8, 'out.': 9,
+      'nov.': 10, 'dez.': 11
   };
   
-  function getMonthNumber(monthName) {
-      const cleanName = monthName.toLowerCase().replace('.', '');
-      return monthMap[cleanName];
-  }
-  
   function parseDate(dateValue) {
-    if (!dateValue) return null;
-    if (dateValue instanceof Date) {
-      return moment(dateValue).tz('America/Sao_Paulo');
-    }
+      if (!dateValue) return null;
+      console.log("Não é null: ",dateValue);
   
-    const dateString = dateValue.toString();
-  
-    // Itera sobre o array de parsers
-    for (const parser of regexParsers) {
-      const match = dateString.match(parser.regex);
-  
-      if (match) {
-        console.log(`Encontrou o match! A regex é: ${parser.regex.source}, o valor é: ${dateString}`);
-        const parsedData = parser.parse(match);
-  
-        // Se o mês é uma string, converte para número
-        if (typeof parsedData.month === 'string') {
-          const monthNumber = getMonthNumber(parsedData.month);
-          if (monthNumber === undefined) {
-            console.error(`Mês inválido: ${parsedData.month}`);
-            return null;
-          }
-          parsedData.month = monthNumber;
-        }
-
-        console.log(parsedData);
-
-        if (!parsedData.hour && !parsedData.minute && !parsedData.second) {
-            semHora = true;
-        }
-        
-        // Cria o objeto Moment a partir dos dados extraídos
-        const momentObj = moment.tz(parsedData, 'America/Sao_Paulo');
-        return momentObj.isValid() ? momentObj : null;
+      if (dateValue instanceof Date) {
+          console.log("É Date: ",dateValue);  
+          return moment(dateValue).tz('America/Sao_Paulo');
       }
-    }
   
-    // Se nenhum dos parsers deu match, tenta o parse padrão do moment
-    const parsed = moment.tz(dateString, 'America/Sao_Paulo');
-    return parsed.isValid() ? parsed : null;
+      const ptRegex = /[a-z]+\,\s([a-z]{3}\.)\s(\d{1,2})\,\s(\d{4})\s(\d{2}:\d{2})/i;
+      const match = dateValue.toString().match(ptRegex);
+      if (match) {
+          const monthAbbr = match[1].toLowerCase();
+          const day = parseInt(match[2]);
+          const year = parseInt(match[3]);
+          const [hours, minutes] = match[4].split(':').map(Number);
+          if (monthMap[monthAbbr] !== undefined) {
+              const month = monthMap[monthAbbr];
+              return moment.tz({
+                  year: year, month: month, date: day, hour: hours, minute: minutes
+              }, 'America/Sao_Paulo');
+          }
+          
+
+      }
+      else{
+
+        const monthMap = {
+        'jan': 0, 'fev': 1, 'mar': 2, 'abr': 3, 'mai': 4,
+        'jun': 5, 'jul': 6, 'ago': 7, 'set': 8, 'out': 9,
+        'nov': 10, 'dez': 11
+        };
+
+
+        console.log("Não bateu regex 1:",dateValue);
+        const ptRegex = /([a-z]{3})\.\s(\d{1,2}),\s(\d{4})/i;
+        console.log("Tentando regex 2:",dateValue);
+        const match = dateValue.toString().match(ptRegex);  
+        if (match) {
+
+            const monthAbbr = match[1].toLowerCase();
+            const day = parseInt(match[2]);
+            const year = parseInt(match[3]);
+            
+            console.log(monthAbbr, day, year);
+            console.log(match);
+            console.log(monthMap[monthAbbr]);
+
+            if (monthMap[monthAbbr] !== undefined) {
+                const month = monthMap[monthAbbr];
+                return moment.tz({
+                    year: year, month: month, date: day, hour: 0, minute: 0
+                }, 'America/Sao_Paulo');
+            }
+
+            console.log("Bateu regex 2:",dateValue);
+        }      
+
+        console.log("Não bateu regex 2:",dateValue);
+        
+      }
+
+      console.log("Tentando parse normal: ",dateValue);
+      const parsed = moment.tz(dateValue, 'America/Sao_Paulo');
+      console.log("Parsed: ",parsed);
+      return parsed.isValid() ? parsed : null;
   }
 
   
