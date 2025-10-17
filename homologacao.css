@@ -1,3 +1,20 @@
+    /* Estilos Responsivos */
+  @media screen and (max-width: 600px) {
+
+    .navigation-controls{
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .status-badges {
+    flex-direction: column;
+    align-items: center;
+    }
+      
+  }
+  
+  
+    /* Estilos Gerais */
   :root {
       --primary-color: #3498db;
       --secondary-color: #ffffff;
@@ -480,7 +497,6 @@
   
   .decision-card {
       position: relative;
-      cursor: grab; /* Altera o cursor para indicar que o elemento pode ser arrastado */
       bottom: 20px;
       background-color: #f8f9fa;
       border-radius: 8px;
@@ -491,11 +507,6 @@
       gap: 10px;
       text-align: center;
       transition: all 0.5s ease-in-out;
-  }
-
-  /* Estilo para quando o elemento está sendo arrastado */
-  .decision-card.dragging {
-      cursor: grabbing; /* Muda o cursor enquanto o usuário está arrastando */
   }
   
   .decision-card h3 {
@@ -564,6 +575,15 @@
       color: #fff;
       text-transform: uppercase;
   }
+
+  #containerModeloWord {
+    background: var(--card-background);
+    margin-top: 20px; 
+    border-radius: 10px;
+    padding: 15px 20px;
+    box-shadow: var(--shadow-light);
+    display: none;
+  }
   
   .status-badge.deferida {
       background-color: var(--success-color);
@@ -577,8 +597,11 @@
       margin-top: 5px;
       color: red;
   }
-  
+
+/* Botão Voltar ao Topo */
   #backToTopBtn {
+      display: flex;
+      flex-direction: column;
       position: fixed;
       bottom: 20px;
       left: 20px;

@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const groupingFieldsContainer = document.getElementById('groupingFieldsContainer');
   const containerCheck = document.querySelector('.checkbox-container');
   const buttonOrdem = document.getElementById('sortByNameCheckbox'); 
+  const backToTopBtn = document.getElementById("backToTopBtn");
   let workbook = null;
   let cleanedData = [];
   let duplicatesInfo = [];
@@ -55,9 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
     // Fecha o modal ao clicar no botão de fechar
     const fecharBtn = modal.querySelector('.fechar');
-  
-  
-  
+
     fecharBtn.onclick = function () {
         modal.style.display = 'none';
     };
@@ -75,13 +74,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
   
-    // Fecha automaticamente após 4 segundos
+    // Fecha automaticamente após 2 segundos
     setTimeout(() => {
         fecharModal();
     }, 2000);
   
   }
   
+    // Função para fechar o modal
   function fecharModal() {
     
     const modal = document.getElementById('meuModal');
@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Define a mensagem inicial como neutra
   setStatusMessage('Aguardando arquivo...', 'neutral');
   
+  // Adiciona Listenner no botão de selecionar o arquivo
   fileInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -174,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
       reader.readAsArrayBuffer(file);
   });
   
+  // Popula os checkboxes para seleção dos campos de agrupamento
   function populateGroupingFields(headers) {
       groupingFieldsContainer.innerHTML = '';
       groupingFieldsSection.classList.remove('hidden');
@@ -207,6 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
   
+  // Adiciona Listenner no botão de processar o arquivo
   processBtn.addEventListener('click', function(e) {
       containerCheck.style.display = 'flex';
     
@@ -235,11 +238,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
               if (semHora){
               mostrarModal('A coluna "submission date" não contém Hora, Minuto ou Segundo, o padrão 00:00 foi definido!<br>A acurácia para determinar a inscrição mais recente diminuiu!','info');
-              }else
+              }else{
               mostrarModal('Processamento concluído!', 'success');
+              }
 
               setStatusMessage('Processamento concluído! Os dados estão prontos.', 'success');
-            
 
               homologacaoBtn.classList.remove('hidden');
               homologacaoBtn.disabled = false;
@@ -257,10 +260,10 @@ document.addEventListener('DOMContentLoaded', function() {
               setStatusMessage('Erro no processamento: ' + error.message, 'error');
               mostrarModal('Erro no processamento: ' + error.message, 'error');
           }
-      }, 3000);
+      }, 1000);
   });
   
-  
+  // Mostra uma prévia dos dados carregados
   function showPreview(data) {
       const headers = data[0];
       const sampleRows = data.slice(1, Math.min(data.length, 6));
@@ -292,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
       previewSection.classList.remove('hidden');
   }
   
+  // Processa os dados para encontrar duplicatas
   function processData(groupingKeys) {
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
@@ -302,10 +306,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       const firstRow = jsonData[0];
-      const dateKey = Object.keys(firstRow).find(key => key.toString().toLowerCase().includes('submission date') || key.toString().toLowerCase().includes('data de envio'));
+      const dateKey = Object.keys(firstRow).find(key => key.toString().toLowerCase().includes('submission date'));
   
       if (!dateKey) {
-          throw new Error('Coluna "Submission Date" ou "Data de Envio" é necessária');
+          throw new Error('Coluna "Submission Date" é necessária');
       }
       
       const groupedData = {};
@@ -382,8 +386,6 @@ document.addEventListener('DOMContentLoaded', function() {
               });
           }
       });
-
-      console.log(cleanedData);
   
       originalCount.textContent = jsonData.length;
       uniqueCount.textContent = cleanedData.length;
@@ -406,7 +408,8 @@ document.addEventListener('DOMContentLoaded', function() {
           duplicatesSection.appendChild(noDuplicatesMessage);
       }
   }
-  
+
+  // Renderiza a tabela de duplicatas
   function renderDuplicatesTable() {
       const duplicatesTableBody = duplicatesTable.querySelector('tbody');
       duplicatesTableBody.innerHTML = '';
@@ -421,6 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
   
+  // Renderiza a tabela de diferenças
   function renderDifferencesTable(groupingKeys) {
       const differencesTableBody = differencesTable.querySelector('tbody');
       differencesTableBody.innerHTML = '';
@@ -453,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Array que associa cada regex a uma função de parse
-const regexParsers = [
+  const regexParsers = [
   // 09/01/2025 - OK
   {
     regex: /^(\d{2})\/(\d{2})\/(\d{4})$/,
@@ -539,7 +543,8 @@ const regexParsers = [
       const cleanName = monthName.toLowerCase().replace('.', '');
       return monthMap[cleanName];
   }
-  
+
+  // Função para analisar a data usando regex e moment.js
   function parseDate(dateValue) {
     if (!dateValue) return null;
     if (dateValue instanceof Date) {
@@ -583,7 +588,7 @@ const regexParsers = [
     return parsed.isValid() ? parsed : null;
   }
 
-  
+  // Adiciona Listenner no botão de Homologação
   homologacaoBtn.addEventListener('click', function() {
 
       if (buttonOrdem.checked){
@@ -619,6 +624,7 @@ const regexParsers = [
       }, 100);
   });
   
+  // Gera o relatório PDF usando jsPDF e jsPDF-AutoTable
   function generatePdfReport() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -704,5 +710,23 @@ const regexParsers = [
   
       doc.save('relatorio_duplicados.pdf');
   }
+
+  // Lógica para o botão "Voltar ao Topo"
+  window.onscroll = function() {
+      if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+          backToTopBtn.classList.add('show');
+      } else {
+          backToTopBtn.classList.remove('show');
+      }
+  };
+  
+  window.scrollToTop = function() {
+      window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+      });
+  };
+
+
   
 });

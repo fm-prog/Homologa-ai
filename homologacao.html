@@ -9,6 +9,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <link href="homologacao.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
 </head>
 <body>
 
@@ -39,6 +43,10 @@
 
 <div id="grouping-panel" class="grouping-panel-box">
     <span class="agrupamento-titulo">Opções de Agrupamento</span>
+    <label style="margin-right:8px;">
+    <input type="checkbox" id="separarDeferidasCheckbox">
+     Separar inscrições por Deferidas e Indeferidas no relatório
+    </label>
     <div id="grouping-fields-container">
     </div>
     <button id="add-group-field-btn" class="nav-btn add-group-btn"><i class="fas fa-plus"></i> Adicionar Nível de Agrupamento</button>
@@ -52,7 +60,15 @@
         <button id="indeferidos-badge" class="status-badge-button" style="display: none;"><i class="fas fa-times"></i> Indeferidas: 0</button>
         
     </div>
-    <button id="generateReportBtn" class="nav-btn generate-report-btn" style="display: none; margin-top: 15px;"><i class="fas fa-file-word"></i> Gerar Relatório</button>
+    <div id="containerModeloWord" >
+        <label for="editalNumero" style="font-weight: 600; margin-right: 8px;">Número do Edital:</label>
+        <input type="text" id="editalNumero" placeholder="Ex: 01" style="margin-right: 16px; padding: 4px; width: 5%;">
+        <br> 
+        <label for="processoSeletivo" style="font-weight: 600; margin-right: 8px;">Processo Seletivo:</label>
+        <input type="text" id="processoSeletivo" placeholder="Ex: Tutor/a Presencial - Licenciatura em Teatro" style="margin-right: 16px; padding: 4px; width: 80%;">
+        <br>
+    <button id="generateReportBtn" class="nav-btn generate-report-btn" style="display: none;"><i class="fas fa-file-word"></i> Gerar Relatório</button>
+    </div>
 </div>
 
 <div id="searchBar" class="search-bar">
@@ -71,14 +87,14 @@
 </div>
 <div id="single-card-view" style="display: none;">
 </div>
-    
 </div>
+
 
 <script src="homologacao.js"></script>
 <script
   src='https://cdn.jotfor.ms/agent/embedjs/019891ac22567a5e8e5d7ed1d03e6e229e4f/embed.js?skipWelcome=1&maximizable=1'>
 </script>
 </body>
-<button onclick="scrollToTop()" id="backToTopBtn" title="Voltar ao Topo"><i class="fas fa-arrow-up"></i></button>
-  
+<button onclick="scrollToTop();" id="backToTopBtn" title="Voltar ao Topo"><i class="fas fa-arrow-up"></i>Topo</button>
+
 </html>

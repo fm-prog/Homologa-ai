@@ -1,3 +1,8 @@
+:root{
+  --primary-color: #3498db;
+}
+
+
 body {
       font-family: 'Poppins', sans-serif;
       background-color: #f4f7f9;
@@ -76,6 +81,39 @@ body {
     background-color: aliceblue;
     color: red;
   }
+
+  /* Botão Voltar ao Topo */
+  #backToTopBtn {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 99;
+      border: none;
+      outline: none;
+      background-color: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      padding: 15px;
+      border-radius: 50%;
+      font-size: 20px;
+      box-shadow: var(--shadow-light);
+      transition: opacity 0.3s, transform 0.3s;
+      opacity: 0;
+      pointer-events: none;
+  }
+  
+  #backToTopBtn.show {
+      opacity: 1;
+      pointer-events: auto;
+  }
+  
+  #backToTopBtn:hover {
+      background-color: #2980b9;
+      transform: translateY(-3px);
+  }
+
   
   /* Conteúdo do Popup mensagem informação */
   .modal-content.info {
