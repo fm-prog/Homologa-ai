@@ -43,10 +43,6 @@
 
 <div id="grouping-panel" class="grouping-panel-box">
     <span class="agrupamento-titulo">Opções de Agrupamento</span>
-    <label style="margin-right:8px;">
-    <input type="checkbox" id="separarDeferidasCheckbox">
-     Separar inscrições por Deferidas e Indeferidas no relatório
-    </label>
     <div id="grouping-fields-container">
     </div>
     <button id="add-group-field-btn" class="nav-btn add-group-btn"><i class="fas fa-plus"></i> Adicionar Nível de Agrupamento</button>
@@ -54,6 +50,12 @@
 
 <div id="undecided-info-box" class="undecided-info-box">
     <h3 id="undecided-title"></h3>
+    <div class="progress-container">
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    </div>
+
     <div class="status-badges">
         <button id="deferidos-badge" class="status-badge-button" style="display: none;"><i class="fas fa-check"></i> Deferidas: 0</button>
         <button id="undecided-badge" class="status-badge-button" style="display: none;"><i class="fas fa-exclamation-triangle"></i> Pendentes: 0</button>
@@ -66,6 +68,11 @@
         <br> 
         <label for="processoSeletivo" style="font-weight: 600; margin-right: 8px;">Processo Seletivo:</label>
         <input type="text" id="processoSeletivo" placeholder="Ex: Tutor/a Presencial - Licenciatura em Teatro" style="margin-right: 16px; padding: 4px; width: 80%;">
+        <br>
+        <label style="margin-right:8px;">
+        <input type="checkbox" id="separarDeferidasCheckbox">
+         Separar inscrições por Deferidas e Indeferidas no relatório
+        </label>
         <br>
     <button id="generateReportBtn" class="nav-btn generate-report-btn" style="display: none;"><i class="fas fa-file-word"></i> Gerar Relatório</button>
     </div>
@@ -80,10 +87,30 @@
 </div>
 
 <div id="navigation-controls" class="navigation-controls" style="display: none;">
-    <button id="backToGroupsBtn" class="nav-btn back-to-groups-btn"><i class="fas fa-arrow-left"></i> Voltar para Grupos</button>
-    <button id="prevBtn" class="nav-btn"><i class="fas fa-chevron-left"></i> Anterior</button>
-    <span id="counter"></span>
-    <button id="nextBtn" class="nav-btn"><i class="fas fa-chevron-right"></i> Próximo</button>
+    <div style="display: flex;">
+    <button id="backToGroupsBtn" class="nav-btn back-to-groups-btn"><i class="fas fa-arrow-left"></i> Grupos</button>    
+    </div>
+    <div style=" display: flex; align-items: center; gap: 4px; flex-direction: column;">
+        <span id="groupPath" class="group-path"></span>
+        <span id="counter"></span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <button id="prevBtn" class="nav-btn"><i class="fas fa-chevron-left"></i> Anterior</button>
+        <button id="nextBtn" class="nav-btn"><i class="fas fa-chevron-right"></i> Próximo</button>
+    </div>
+    
+</div>
+<div id="general-controls">  
+<div class="floating-switch">
+    <div id="onlyLinks">
+    <label>Somente Links</label>
+    <div class="switch-wrapper">
+    <input type="checkbox" id="toggle-links" />
+    <label for="toggle-links" class="slider"></label>
+    </div>
+    </div>
+    <div class="hint-box">Todos os documentos apontam para os links direto do Jotform</div>
+</div>
 </div>
 <div id="single-card-view" style="display: none;">
 </div>
@@ -96,5 +123,22 @@
 </script>
 </body>
 <button onclick="scrollToTop();" id="backToTopBtn" title="Voltar ao Topo"><i class="fas fa-arrow-up"></i>Topo</button>
+
+<!-- Botão fixo para abrir -->
+<button id="showBtn" class="show-btn hidden" title="Expandir">📋 Mostrar Resumo</button>
+
+<!-- Quadro de informações -->
+<div class="info-box" id="infoBox">
+  <div class="info-header">
+    <span style="padding: 10px;"></span>
+    <div id="bloobResumo"><span><i class="fa fa-clipboard-list"></i> Resumo da Inscrição</span></div>
+    <button id="toggleBtn"><i class="fa-solid fa-minimize" title="Minimizar"></i></button>
+  </div>
+  <div class="info-content">
+  </div>
+</div>
+
+
+
 
 </html>

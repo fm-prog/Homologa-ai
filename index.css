@@ -2,131 +2,130 @@
   --primary-color: #3498db;
 }
 
-
 body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f4f7f9;
-  }
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7f9;
+}
 
-  #processBtn:disabled {
-      background-color: #9ca3af;
-      opacity: 1;
-      cursor: not-allowed;
-  }
-  .differences-table-row-cpf {
-      background-color: #dbeafe !important;
-  }
-  .differences-table-cell-kept {
-      background-color: #d1fae5 !important;
-  }
+#processBtn:disabled {
+    background-color: #9ca3af;
+    opacity: 1;
+    cursor: not-allowed;
+}
+.differences-table-row-cpf {
+    background-color: #dbeafe !important;
+}
+.differences-table-cell-kept {
+    background-color: #d1fae5 !important;
+}
 
-  .checkbox-container {
-    display: none;
-    align-items: center;
-    margin-top: 10px;
-  }
-  
-  #sortByNameCheckbox {
-      margin-right: 5px;
-      color: #3498db;
-  }
+.checkbox-container {
+  display: none;
+  align-items: center;
+  margin-top: 10px;
+}
 
-  
-  /* Novas classes para as cores do texto */
-  .status-message-success {
-      color: #2ecc71; /* Verde */
-  }
-  .status-message-error {
-      color: #e74c3c; /* Vermelho */
-  }
-  .status-message-neutral {
-      color: #3498db; /* Azul */
-  }
+#sortByNameCheckbox {
+    margin-right: 5px;
+    color: #3498db;
+}
 
-  /* Popup informações */
-  .modal {
-    display: none;
+
+/* Novas classes para as cores do texto */
+.status-message-success {
+    color: #2ecc71; /* Verde */
+}
+.status-message-error {
+    color: #e74c3c; /* Vermelho */
+}
+.status-message-neutral {
+    color: #3498db; /* Azul */
+}
+
+/* Popup informações */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+
+}
+
+/* Conteúdo do Popup */
+.modal-content {
+  background-color: white;
+  margin: 15% auto;
+  padding: 1em;
+  border: 0.1em solid #888;
+  width: 80%;
+  border-radius: 1em;
+  box-shadow: 0.1em 0.3em 0.3em;
+  font-size: 1.7em;
+  text-align: center;
+}
+
+/* Conteúdo do Popup mensagem bem sucedida */
+.modal-content.success {
+  background-color: aliceblue;
+  color: green;
+}
+
+/* Conteúdo do Popup mensagem mal sucedida */
+.modal-content.error {
+  background-color: aliceblue;
+  color: red;
+}
+
+/* Botão Voltar ao Topo */
+#backToTopBtn {
+    display: flex;
+    flex-direction: column;
     position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-  
-  }
-  
-  /* Conteúdo do Popup */
-  .modal-content {
-    background-color: white;
-    margin: 15% auto;
-    padding: 1em;
-    border: 0.1em solid #888;
-    width: 80%;
-    border-radius: 1em;
-    box-shadow: 0.1em 0.3em 0.3em;
-    font-size: 1.7em;
-    text-align: center;
-  }
-  
-  /* Conteúdo do Popup mensagem bem sucedida */
-  .modal-content.success {
-    background-color: aliceblue;
-    color: green;
-  }
-  
-  /* Conteúdo do Popup mensagem mal sucedida */
-  .modal-content.error {
-    background-color: aliceblue;
-    color: red;
-  }
+    bottom: 20px;
+    left: 20px;
+    z-index: 99;
+    border: none;
+    outline: none;
+    background-color: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 50%;
+    font-size: 20px;
+    box-shadow: var(--shadow-light);
+    transition: opacity 0.3s, transform 0.3s;
+    opacity: 0;
+    pointer-events: none;
+}
 
-  /* Botão Voltar ao Topo */
-  #backToTopBtn {
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 99;
-      border: none;
-      outline: none;
-      background-color: var(--primary-color);
-      color: white;
-      cursor: pointer;
-      padding: 15px;
-      border-radius: 50%;
-      font-size: 20px;
-      box-shadow: var(--shadow-light);
-      transition: opacity 0.3s, transform 0.3s;
-      opacity: 0;
-      pointer-events: none;
-  }
-  
-  #backToTopBtn.show {
-      opacity: 1;
-      pointer-events: auto;
-  }
-  
-  #backToTopBtn:hover {
-      background-color: #2980b9;
-      transform: translateY(-3px);
-  }
+#backToTopBtn.show {
+    opacity: 1;
+    pointer-events: auto;
+}
 
-  
-  /* Conteúdo do Popup mensagem informação */
-  .modal-content.info {
-    background-color: aliceblue;
-    color: #3498db;
-  }
-  
-  /* Fechar conteúdo do Popup  */
-  .fechar {
-    color: #3498db;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-  }
+#backToTopBtn:hover {
+    background-color: #2980b9;
+    transform: translateY(-3px);
+}
+
+
+/* Conteúdo do Popup mensagem informação */
+.modal-content.info {
+  background-color: aliceblue;
+  color: #3498db;
+}
+
+/* Fechar conteúdo do Popup  */
+.fechar {
+  color: #3498db;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
 
   

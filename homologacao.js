@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
     const dataDisplayContainer = document.getElementById('data-display-container');
     const singleCardView = document.getElementById('single-card-view');
@@ -33,12 +32,86 @@ document.addEventListener('DOMContentLoaded', () => {
     let decisions = {};
     let openedDocuments = new Set();
     let allKeys = [];
-    let groupingFields = [];
     let filteredData = [];
     let currentCardIndex = 0;
     let deferidaFlag = false;
-    
+    let grupoAtual = 'Geral';
+    const grupoSpan = document.getElementById('groupPath');
+    let avaliarStatus = false;
+    let filteredProgressData = [];
+    const cardFloat = document.querySelector('.info-content');
+    const toggleBtn = document.getElementById("toggleBtn");
+    const infoBox = document.getElementById("infoBox");
+    const botaoResumo = document.getElementById("showBtn");
+    const slider = document.getElementById("toggle-links");
+    generalControls = document.getElementById("general-controls");
 
+
+    // Reload e render da visualização atual 
+    generalControls.onclick = function() {
+        renderCurrentCard();
+    }
+
+
+    // Função para lidar com eventos de teclado
+    function listennersTeclado(event) {
+    const card = document.querySelector('.decision-card');
+    switch (event.key) {
+        case 'ArrowLeft':
+            console.log('⬅️ Ação: seta esquerda pressionada');
+            if (currentCardIndex > 0) {
+            currentCardIndex--;
+            renderCurrentCard();
+            }
+            break;
+
+        case 'ArrowRight':
+            console.log('➡️ Ação: seta direita pressionada');
+            if (currentCardIndex < filteredData.length - 1) {
+            currentCardIndex++;
+            renderCurrentCard();
+            }
+            break;
+
+        case 'Enter':
+            console.log('✅ Ação: Enter pressionado');
+            const deferidaBtn = card.querySelector('.decision-btn.deferida');
+            (deferidaBtn) ? deferidaBtn.click() : console.log('Botão Deferida não encontrado!');
+            break;
+
+        case 'Backspace':
+            console.log('❌ Ação: Backscape pressionado');
+            const clearBtn = card.querySelector('.clear-decision-btn');
+            (clearBtn) ? clearBtn.click() : console.log('Botão Decidir Novamente não encontrado!');
+            break;  
+
+        case 'Escape':
+            console.log('Ação: Escape pressionado');
+            backToGroupView();
+            break;  
+
+    }
+    };
+    
+    // Funções para ativar e desativar o listener de teclado
+    function ativarListenner() {
+        document.addEventListener('keydown', listennersTeclado);
+    }
+    function desativarListenner() {
+        document.removeEventListener('keydown', listennersTeclado);
+    }
+
+
+    // Eventos para mostrar/ocultar a info box
+    toggleBtn.addEventListener("click", () => {
+    infoBox.classList.add("hidden");
+    botaoResumo.classList.remove("hidden");
+    });
+
+    botaoResumo.addEventListener("click", () => {
+    infoBox.classList.remove("hidden");
+    botaoResumo.classList.add("hidden");
+    });
 
 
     // Função para mostrar o modal com a mensagem e aplicar a cor de fundo
@@ -95,7 +168,35 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 2000);
     
     }
+
+
+    // Função para atualizar a barra de progresso
+    function updateProgress() {
+    const total = filteredProgressData.length;
+
+    // normaliza CPF/E-mail para comparar do mesmo jeito
+    const processedUids = filteredProgressData.map(item =>
+        (item['CPF:'] || item['E-mail:'] || '')
+            .toString()
+            .replace(/[\.\-]/g, '')+`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`
+    );
+
+    console.log('Processed UIDs:', processedUids);
+
+    // filtra apenas as decisões que correspondem a UIDs de processedData
+    const avaliados = processedUids.filter(uid => decisions[uid] && decisions[uid].status).length;
+
+    console.log(`Total: ${total}, Avaliados (válidos): ${avaliados}`);
+
+    const percent = total > 0 ? Math.round((avaliados / total) * 100) : 0;
+
+    const fill = document.getElementById("progressFill");
+    fill.style.width = percent + "%";
+    fill.textContent = percent + "%";
+    }
+
     
+    // Função para fechar o modal
     function fecharModal() {
       
       const modal = document.getElementById('meuModal');
@@ -120,10 +221,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     }
 
+    // Função para salvar campos que foram ocultados pelo usuário no Local Storage
     function saveHiddenFields() {
         localStorage.setItem(hiddenFieldsKey, JSON.stringify(Array.from(hiddenFields)));
     }
 
+    // Carrega os campos que foram ocultados pelo usuário do Local Storage
     function loadHiddenFields() {
         const stored = localStorage.getItem(hiddenFieldsKey);
         if (stored) {
@@ -131,10 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Função para salvar as decisões no Local Storage
     function saveDecisions() {
         localStorage.setItem(decisionsKey, JSON.stringify(decisions));
     }
 
+    // Carrega as decisões do Local Storage
     function loadDecisions() {
         const stored = localStorage.getItem(decisionsKey);
         if (stored) {
@@ -142,10 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // Função para salvar os documentos abertos no Local Storage
     function saveOpenedDocuments() {
         localStorage.setItem(openedDocumentsKey, JSON.stringify(Array.from(openedDocuments)));
     }
 
+    // Carrega os documentos que foram abertos pelo usuário do Local Storage
     function loadOpenedDocuments() {
         const stored = localStorage.getItem(openedDocumentsKey);
         if (stored) {
@@ -153,24 +260,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Função para salvar a configuração de agrupamento no Local Storage
     function saveGroupingConfig() {
         const selects = groupingFieldsContainer.querySelectorAll('select');
         const config = Array.from(selects).map(s => s.value).filter(v => v !== "");
         localStorage.setItem(groupingConfigKey, JSON.stringify(config));
     }
 
-    function loadGroupingConfig() {
-        const stored = localStorage.getItem(groupingConfigKey);
-        if (stored) {
-            groupingFields = JSON.parse(stored);
-        } else {
-            groupingFields = [];
-        }
-        if (groupingFields.length === 0) {
-            groupingFields.push("");
+    // Função para carregar e adicionar os grupos do Local Storage ao painel de agrupamento
+    function loadAndAddGroupingConfig() {
+        const gruposSalvos = localStorage.getItem(groupingConfigKey);
+        groupingFieldsContainer.innerHTML = ''; // Limpa os campos atuais
+        if (gruposSalvos) {
+            const campos = JSON.parse(gruposSalvos);
+            // Filtra apenas os campos que existem em allKeys
+            const validCampos = Array.isArray(campos) ? campos.filter(campo => allKeys.includes(campo)) : [];
+            if (validCampos.length > 0) {
+                validCampos.forEach(campo => addGroupingField(campo));
+            }
         }
     }
 
+
+    // Adiciona um grupo ao painel de agrupamento
     function addGroupingField(value = "") {
         const newFieldDiv = document.createElement('div');
         newFieldDiv.className = 'grouping-field-row';
@@ -196,57 +308,69 @@ document.addEventListener('DOMContentLoaded', () => {
         groupingFieldsContainer.appendChild(newFieldDiv);
     }
 
-    function populateGroupingOptions() {
-        if (allKeys.length === 0) return;
-        groupingFieldsContainer.innerHTML = '';
-        groupingFields.forEach(field => addGroupingField(field));
-    }
-
+    // Função para criar a estrutura de dados agrupados
     function getGroupedData(data) {
         const groupingKeys = Array.from(groupingFieldsContainer.querySelectorAll('select')).map(s => s.value).filter(v => v !== "");
         
+        // Se nenhum campo de agrupamento for selecionado, retorna todos os dados em um único grupo
         if (groupingKeys.length === 0) {
-            return { 'Todos': { 'Inscrições': data } };
+            return { "Todos os Registros": data };
         }
 
         let grouped = {};
 
+        // Itera sobre cada item e agrupa conforme os campos selecionados
         data.forEach(item => {
+            console.log('Agrupando item:', item);
             let currentLevel = grouped;
             groupingKeys.forEach((key, index) => {
                 const groupKey = item[key] || 'Não informado!';
                 if (index === groupingKeys.length - 1) {
+                    console.log('Adicionando ao grupo:', groupKey);
                     if (!currentLevel[groupKey]) {
                         currentLevel[groupKey] = [];
                     }
+                    // Adiciona o ID único ao item para referência futura
                     const rawUniqueId = item['CPF:'] || item['E-mail:'];
-                    const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '');
+                    const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
                     currentLevel[groupKey].push({ ...item, uniqueId });
                 } else {
+                    console.log('Descendo para o próximo nível:', groupKey);
                     if (!currentLevel[groupKey]) {
                         currentLevel[groupKey] = {};
                     }
                     currentLevel = currentLevel[groupKey];
                 }
+                console.log('Current Level:', currentLevel);
             });
         });
 
         return grouped;
     }
     
+    // Função para renderizar os dados agrupados
     function renderGroupedData(data, groupingKeys) {
         dataDisplayContainer.innerHTML = '';
         if (Object.keys(data).length === 0) {
-            dataDisplayContainer.innerHTML = '<p class="text-center text-gray-500 italic">Nenhum registro a ser exibido com base nos critérios de agrupamento.</p>';
+            dataDisplayContainer.innerHTML = '<div class="options-panel"><p style="color: var(--danger-color);text-align: center;">Nenhum registro a ser exibido com base nos critérios determinados!</p></div>';
             return;
         }
 
+        // Função recursiva para renderizar grupos e subgrupos
         function renderRecursive(container, data, keys, level = 0) {
             const currentKey = keys[level];
             
             for (const groupKey in data) {
                 if (data.hasOwnProperty(groupKey)) {
                     const subgroup = data[groupKey];
+                    console.log('Renderizando subgrupo', subgroup);
+                    console.log('Registros decididos:', decisions);
+
+                    let IdsUnicos = subgroup.map(item => item.uniqueId).filter(id => id !== undefined && id !== null);
+                    let countDecididos = IdsUnicos.filter(id => decisions[id] && decisions[id].status).length;
+
+                    console.log('IDs únicos no subgrupo:', IdsUnicos);
+                    console.log('Contagem de decididos no subgrupo:', countDecididos);
                     
                     const groupCard = document.createElement('div');
                     groupCard.className = 'group-card';
@@ -265,12 +389,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         subgroupSummary.style.justifyContent = 'space-between';
                         subgroupSummary.style.alignItems = 'center';
                         
-                        const countSpan = document.createElement('span');
-                        countSpan.textContent = `Inscrições (${subgroup.length})`;
+                        const countSpanInsc = document.createElement('span');
+                        countSpanInsc.textContent = `Inscrições (${subgroup.length})`;
+                       
+                       
+                        const countSpanStatus = document.createElement('span');
+                        if (IdsUnicos.length > 0) {
+                        let porcentagem = subgroup.length > 0 ? Math.round((countDecididos / subgroup.length) * 100) : 0;
+                        (porcentagem === 100) ? countSpanStatus.style.color = 'var(--success-color)' : countSpanStatus.style.color = 'var(--danger-color)';
+                        countSpanStatus.textContent = `Avaliadas (${countDecididos}/${subgroup.length}) - ${porcentagem}%`;
+                        }
+                        
+                        
+                        
 
                         const evaluateButton = document.createElement('button');
                         evaluateButton.className = 'nav-btn';
-                        evaluateButton.innerHTML = `<i class="fas fa-play"></i> Avaliar Subgrupo`;
+                        evaluateButton.innerHTML = `<i class="fas fa-play"></i> Avaliar`;
                         evaluateButton.addEventListener('click', () => {
                             if (subgroup.length === 0){
                               evaluateButton.style.display = 'none';
@@ -278,12 +413,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             else
                             {
+                              botaoResumo.style.display = 'block';
+                              infoBox.style.display = 'flex';
+                              grupoAtual = groupKey;
                               evaluateButton.style.display = 'flex'; 
                               startInteractiveEvaluation(subgroup);
                             }
                         });
                         
-                        subgroupSummary.appendChild(countSpan);
+                        subgroupSummary.appendChild(countSpanInsc);
+
+                        console.log('Group Key:', groupKey);
+                        subgroupSummary.appendChild(countSpanStatus);
                         subgroupSummary.appendChild(evaluateButton);
                         subgroupDetails.appendChild(subgroupSummary);
                         
@@ -311,91 +452,131 @@ document.addEventListener('DOMContentLoaded', () => {
         renderRecursive(dataDisplayContainer, data, groupingKeys);
     }
     
+    // Função para iniciar a avaliação interativa
     function startInteractiveEvaluation(subgroupRecords) {
+        undecidedTitle.textContent = `Status da Avaliação - ${grupoAtual}`;
         filteredData = subgroupRecords;
+        filteredProgressData = subgroupRecords;
         currentCardIndex = 0;
         dataDisplayContainer.style.display = 'none';
         groupingPanel.style.display = 'none';
         searchBar.style.display = 'none';
         navigationControls.style.display = 'flex';
         singleCardView.style.display = 'block';
+        ativarListenner();
+        updateProgress();
         renderCurrentCard();
     }
     
+    // Função para iniciar a avaliação dos registros pendentes
     function startUndecidedEvaluation() {
          const undecidedRecords = processedData.filter(item => {
-             const uniqueId = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '');
+            const rawUniqueId = item['CPF:'] || item['E-mail:'];
+            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
              return !decisions[uniqueId] || !decisions[uniqueId].status;
          });
 
          if (undecidedRecords.length > 0) {
-             filteredData = undecidedRecords;
-             currentCardIndex = 0;
-             dataDisplayContainer.style.display = 'none';
-             groupingPanel.style.display = 'none';
-             searchBar.style.display = 'none';
-             navigationControls.style.display = 'flex';
-             singleCardView.style.display = 'block';
-             renderCurrentCard();
+            botaoResumo.style.display = 'block';
+            infoBox.style.display = 'flex';
+            avaliarStatus = true;
+            grupoAtual = 'Pendentes'; 
+            filteredData = undecidedRecords;
+            currentCardIndex = 0;
+            dataDisplayContainer.style.display = 'none';
+            groupingPanel.style.display = 'none';
+            searchBar.style.display = 'none';
+            navigationControls.style.display = 'flex';
+            singleCardView.style.display = 'block';
+            ativarListenner();
+            renderCurrentCard();
          } else {
              mostrarModal('Todas as inscrições já foram avaliadas!','success');
          }
     }
-    
+
+    // Função para iniciar a avaliação dos registros deferidos
     function startDeferidosEvaluation() {
          const deferidosRecords = processedData.filter(item => {
-             const uniqueId = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '');
+            const rawUniqueId = item['CPF:'] || item['E-mail:'];
+            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
              return decisions[uniqueId] && decisions[uniqueId].status === 'deferida';
          });
 
          if (deferidosRecords.length > 0) {
-             filteredData = deferidosRecords;
-             currentCardIndex = 0;
-             dataDisplayContainer.style.display = 'none';
-             groupingPanel.style.display = 'none';
-             searchBar.style.display = 'none';
-             navigationControls.style.display = 'flex';
-             singleCardView.style.display = 'block';
-             renderCurrentCard();
+            botaoResumo.style.display = 'block';
+            infoBox.style.display = 'flex';
+            avaliarStatus = true;
+            grupoAtual = 'Deferidas'; 
+            filteredData = deferidosRecords;
+            currentCardIndex = 0;
+            dataDisplayContainer.style.display = 'none';
+            groupingPanel.style.display = 'none';
+            searchBar.style.display = 'none';
+            navigationControls.style.display = 'flex';
+            singleCardView.style.display = 'block';
+            ativarListenner();
+            renderCurrentCard();
          } else {
              mostrarModal('Não há inscrições deferidas para visualizar.','error');
              
          }
     }
     
+    // Função para iniciar a avaliação dos registros indeferidos
     function startIndeferidosEvaluation() {
          const indeferidosRecords = processedData.filter(item => {
-             const uniqueId = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '');
+            const rawUniqueId = item['CPF:'] || item['E-mail:'];
+            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
              return decisions[uniqueId] && decisions[uniqueId].status === 'indeferida';
          });
 
          if (indeferidosRecords.length > 0) {
-             filteredData = indeferidosRecords;
-             currentCardIndex = 0;
-             dataDisplayContainer.style.display = 'none';
-             groupingPanel.style.display = 'none';
-             searchBar.style.display = 'none';
-             navigationControls.style.display = 'flex';
-             singleCardView.style.display = 'block';
-             renderCurrentCard();
+            botaoResumo.style.display = 'block';
+            infoBox.style.display = 'flex';
+            avaliarStatus = true;
+            grupoAtual = 'Indeferidas'; 
+            filteredData = indeferidosRecords;
+            currentCardIndex = 0;
+            dataDisplayContainer.style.display = 'none';
+            groupingPanel.style.display = 'none';
+            searchBar.style.display = 'none';
+            navigationControls.style.display = 'flex';
+            singleCardView.style.display = 'block';
+            ativarListenner();
+            renderCurrentCard();
          } else {
              mostrarModal('Não há inscrições indeferidas para visualizar.','error');
          }
     }
 
+    // Função para voltar à visualização de grupos
     function backToGroupView() {
+        generalControls.style.display = 'none';
+        botaoResumo.style.display = 'none';
+        infoBox.style.display = 'none';
         dataDisplayContainer.style.display = 'block';
+        avaliarStatus = false;
         groupingPanel.style.display = 'flex';
         searchBar.style.display = 'flex';
         navigationControls.style.display = 'none';
         singleCardView.style.display = 'none';
+        filteredProgressData = processedData;
+        grupoAtual = 'Geral';
+        desativarListenner();
         reloadAndRender();
     }
 
+    // Função para criar o cartão de registro
     function createRecordCard(item, index) {
-        const rawUniqueId = item['CPF:'] || item['E-mail:'] || `id-${index}`;
-        const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '');
+        const rawUniqueId = item['CPF:'] || item['E-mail:'];
+        const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
         const decision = decisions[uniqueId] || { status: null, motivo: '' };
+        htmlFloat = '';
+        let nome;
+        let sliderState = slider.checked;
+
+        generalControls.style.display = 'flex';
 
         let cardClasses = `data-card record-card-wrapper mb-4`;
         if (decision.status) {
@@ -407,10 +588,12 @@ document.addEventListener('DOMContentLoaded', () => {
         cardWrapper.id = `record-${uniqueId}`;
 
         let html = '';
+
         for (const key of allKeys) {
             if (!hiddenFields.has(key)) {
                 let value = item[key];
                 let fieldClass = '';
+                const groupingKeys = Array.from(groupingFieldsContainer.querySelectorAll('select')).map(s => s.value).filter(v => v !== "");
 
                 if (key.toLowerCase().trim() === 'nome:') {
                     value = (value || '').toUpperCase();
@@ -431,7 +614,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     let viewerUrl = trimmedLink;
                     let isImage = ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'].includes(extension);
                     const isOpened = openedDocuments.has(trimmedLink);
-
+                    
+                    if (sliderState){
+                        viewerUrl = trimmedLink; // Links diretos para outros tipos de arquivo
+                        linksHtml += `<a href="${viewerUrl}" target="_blank" data-original-url="${trimmedLink}" class="document-link-button ${isOpened ? 'document-link-opened' : ''}" title="Abrir Link"><i class="fas fa-external-link-alt"></i> Abrir Link</a>`;
+                    } else
                     if (isImage) {
                         // Adiciona uma imagem oculta para o Viewer.js
                         linksHtml += `
@@ -482,6 +669,49 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p>${value}</p>
                     </div>
                 `;
+
+
+                if (key.toLowerCase().trim() === 'nome:') {
+                    htmlFloat = `
+                    <div id="info-content">
+                    </div>
+                    <div class="data-field ${fieldClass}">
+                        <strong>${key}</strong>
+                        <p>${value}</p>
+                    </div>
+                `;
+                nome = value;
+                }
+                
+    
+                if (key.toLowerCase().trim() === 'nome social:') {
+
+
+                    if (nome.toLowerCase() !== value.toLowerCase()){
+
+                        htmlFloat += `
+                            <div id="info-content">
+                            </div>
+                            <div class="data-field ${fieldClass}">
+                                <strong>${key}</strong>
+                                <p style="color:red">${value}</p>
+                            </div>
+                        `;
+
+                    }
+
+                }
+
+                const idxGrouping = groupingKeys.indexOf(key);
+                if (idxGrouping !== -1) {
+                    htmlFloat += `
+                        <div class="data-field ${fieldClass}">
+                            <strong>${groupingKeys[idxGrouping]}</strong>
+                            <p>${item[groupingKeys[idxGrouping]] || 'Não informado!'}</p>
+                        </div>
+                    `;
+                }
+
                   
             }
         }
@@ -533,12 +763,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         }, 0);
 
-      
+
+
+
+        cardFloat.innerHTML = htmlFloat;
         cardWrapper.innerHTML = decisionCardHtml + html;
         addDecisionListeners(cardWrapper, uniqueId);
         return cardWrapper;
     }
     
+    // Função para renderizar o cartão atual
     function renderCurrentCard() {
         singleCardView.innerHTML = '';
         if (filteredData.length === 0) {
@@ -549,51 +783,78 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentItem = filteredData[currentCardIndex];
         if (currentItem) {
             const card = createRecordCard(currentItem, currentCardIndex);
+            console.log('Renderizando cartão para item:', card);
             singleCardView.appendChild(card);
             addDocumentLinkListeners(card);
         }
         updateNavigationButtons();
     }
 
+    // Função para atualizar os botões de navegação
     function updateNavigationButtons() {
-        counterSpan.textContent = `${currentCardIndex + 1} de ${filteredData.length}`;
+        counterSpan.textContent = `Inscrições: ${currentCardIndex + 1} de ${filteredData.length}`;
+        grupoSpan.textContent = `${grupoAtual}`;
         prevBtn.disabled = currentCardIndex === 0;
         nextBtn.disabled = currentCardIndex === filteredData.length - 1;
     }
 
+
+    // Função para lidar com as decisões
     function addDecisionListeners(card, uniqueId) {
         const deferidaBtn = card.querySelector('.decision-btn.deferida');
         const indeferidaBtn = card.querySelector('.decision-btn.indeferida');
         const clearBtn = card.querySelector('.clear-decision-btn');
+
+        const currentIsLast = currentCardIndex === filteredData.length - 1;
         
         const handleDecisionAndAdvance = (status, motivo) => {
             handleDecision(status, uniqueId, motivo);
 
-            const currentIsLast = (currentCardIndex === filteredData.length - 1);
-            
-            const isUndecidedMode = (filteredData.some(item => !decisions[item.uniqueId] || !decisions[item.uniqueId].status));
-            const isDeferidosMode = (filteredData.some(item => decisions[item.uniqueId] && decisions[item.uniqueId].status === 'deferida'));
-            const isIndeferidosMode = (filteredData.some(item => decisions[item.uniqueId] && decisions[item.uniqueId].status === 'indeferida'));
-            
-            // If the user is in a filtered mode (pendentes, deferidos, indeferidos), re-filter and re-render.
-            if (isUndecidedMode || isDeferidosMode || isIndeferidosMode) {
+            // Filtered flow
+            if (avaliarStatus) {
                 let filteredRecords = [];
-                if (isUndecidedMode) {
+                let grupoPendentes = false;
+                let grupoDeferidas = false;
+                let grupoIndeferidas = false;
+
+
+                if (grupoAtual === 'Pendentes')
+                {
+                    grupoPendentes = true;
+                }else
+                if (grupoAtual === 'Deferidas'){
+                    grupoDeferidas = true;
+                }else
+                if (grupoAtual === 'Indeferidas'){
+                    grupoIndeferidas = true;
+                }
+              
+
+                if (grupoPendentes) {
                     filteredRecords = processedData.filter(item => {
-                        const uid = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '');
+                        const uid = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
+                        console.log('UID:', uid, 'Decision:', decisions[uid]);
                         return !decisions[uid] || !decisions[uid].status;
                     });
-                } else if (isDeferidosMode) {
+                    console.log('Pendentes');
+                } 
+                else
+                if (grupoDeferidas) {
                     filteredRecords = processedData.filter(item => {
-                        const uid = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '');
+                        const uid = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
                         return decisions[uid] && decisions[uid].status === 'deferida';
                     });
-                } else if (isIndeferidosMode) {
-                    filteredRecords = processedData.filter(item => {
-                        const uid = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '');
-                        return decisions[uid] && decisions[uid].status === 'indeferida';
-                    });
+                    console.log('Deferidas');
                 }
+                else
+                if (grupoIndeferidas) {
+                    filteredRecords = processedData.filter(item => {
+                        const uid = (item['CPF:'] || item['E-mail:'] || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
+                        return decisions[uid] && decisions[uid].status === 'indeferida';
+                    }); 
+                    console.log('Indeferidas');
+                }
+
 
                 if (filteredRecords.length === 0) {
                     mostrarModal('A lista de inscrições chegou ao fim!','success');
@@ -601,19 +862,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                filteredData = filteredRecords;
+    
                 if (currentCardIndex >= filteredData.length) {
                     currentCardIndex = 0;
                 }
+
+                filteredData = filteredRecords;
+
                 renderCurrentCard();
-            } else { // Normal flow
+            } else { 
+                // Normal flow
+                console.log('Normal flow');
                 if (!currentIsLast) {
                     currentCardIndex++;
                     renderCurrentCard();
-                } else {
-                    mostrarModal('Você chegou ao fim desta lista!','success');
-                    backToGroupView();
                 }
+                else {
+                    renderCurrentCard();
+                }
+
             }
         };
 
@@ -647,6 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // Função para adicionar listeners aos links de documentos
     function addDocumentLinkListeners(card) {
         const documentLinks = card.querySelectorAll('.document-link-button');
         documentLinks.forEach(link => {
@@ -670,17 +938,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
     }
 
+    // Função para lidar com a decisão tomada
     function handleDecision(status, uniqueId, motivo) {
         decisions[uniqueId] = { status, motivo };
         saveDecisions();
         updateStatusBox();
     }
 
+    // Funções para obter contagens de status (Pendentes)
     function getUndecidedCount() {
         let count = 0;
         processedData.forEach(item => {
             const rawUniqueId = item['CPF:'] || item['E-mail:'];
-            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '');
+            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
             if (!decisions[uniqueId] || !decisions[uniqueId].status) {
                 count++;
             }
@@ -688,11 +958,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return count;
     }
     
+    // Funções para obter contagens de status (Deferidos)
     function getDeferidosCount() {
         let count = 0;
         processedData.forEach(item => {
             const rawUniqueId = item['CPF:'] || item['E-mail:'];
-            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '');
+            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
             if (decisions[uniqueId] && decisions[uniqueId].status === 'deferida') {
                 count++;
             }
@@ -700,11 +971,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return count;
     }
     
+    // Funções para obter contagens de status (Indeferidos)
     function getIndeferidosCount() {
         let count = 0;
         processedData.forEach(item => {
             const rawUniqueId = item['CPF:'] || item['E-mail:'];
-            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '');
+            const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
             if (decisions[uniqueId] && decisions[uniqueId].status === 'indeferida') {
                 count++;
             }
@@ -712,11 +984,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return count;
     }
 
+    // Função para verificar se todas as inscrições foram avaliadas
     function checkIfAllDecided() {
         return getUndecidedCount() === 0;
     }
 
+    // Função para atualizar a caixa de status
     function updateStatusBox() {
+        updateProgress();
         const undecidedCount = getUndecidedCount();
         const deferidosCount = getDeferidosCount();
         const indeferidosCount = getIndeferidosCount();
@@ -731,6 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (checkIfAllDecided()) {
             undecidedTitle.textContent = 'Avaliação Concluída!';
+            mostrarModal("Avaliação Concluída!", "success");
             undecidedInfoBox.classList.add('completed');
             undecidedBadge.style.display = 'none';
             generateReportBtn.style.display = 'inline-flex';
@@ -740,7 +1016,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             
         } else {
-            undecidedTitle.textContent = 'Status da Avaliação';
+            if (!avaliarStatus){
+                undecidedTitle.textContent = `Status da Avaliação - ${grupoAtual}`;
+            }
+            else
+            {
+              undecidedTitle.textContent = `Status da Avaliação - Geral`;
+            }
+            
             undecidedInfoBox.classList.remove('completed');
             undecidedBadge.style.display = 'inline-flex';
             generateReportBtn.style.display = 'none';
@@ -749,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
         undecidedInfoBox.classList.add('show');
     }
 
+    // Função para recarregar e renderizar os dados com base na busca e agrupamento
     function reloadAndRender() {
         const searchTerm = searchInput.value.toLowerCase();
         const filteredBySearch = processedData.filter(item => {
@@ -767,6 +1051,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStatusBox();
     }
 
+    // Carrega os dados processados do Local Storage
     const storedProcessedData = localStorage.getItem(processedDataKey);
     if (storedProcessedData) {
         try {
@@ -780,12 +1065,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Starta o progress bar
+            filteredProgressData = processedData;
+            updateProgress();
+
             allKeys = Object.keys(processedData[0]);
             loadHiddenFields();
             loadDecisions();
             loadOpenedDocuments();
             createOptionsCheckboxes();
-            populateGroupingOptions();
+            loadAndAddGroupingConfig();
             reloadAndRender();
             loadingMessage.style.display = 'none';
 
@@ -801,6 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
         noDataMessage.style.display = 'block';
     }
 
+    // Função para criar os checkboxes de opções de campos
     function createOptionsCheckboxes() {
         optionsGrid.innerHTML = '';
         allKeys.forEach(key => {
@@ -829,21 +1119,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Adiciona event listeners aos botões para adicionar grupo e gerar relatório
     addGroupFieldBtn.addEventListener('click', () => addGroupingField());
     generateReportBtn.addEventListener('click', () => {
         generateWordReport();
     });
 
+    // Event listeners para os badges de status
     undecidedBadge.addEventListener('click', () => {
+        filteredProgressData = processedData;
+        undecidedTitle.textContent = 'Status da Avaliação - Geral';
         startUndecidedEvaluation();
+        updateProgress();
     });
     deferidosBadge.addEventListener('click', () => {
+        filteredProgressData = processedData;
+        undecidedTitle.textContent = 'Status da Avaliação - Geral';
         startDeferidosEvaluation();
+        updateProgress();
     });
     indeferidosBadge.addEventListener('click', () => {
+        filteredProgressData = processedData;
+        undecidedTitle.textContent = 'Status da Avaliação - Geral';
         startIndeferidosEvaluation();
+        updateProgress();
     });
 
+    // Event listeners para os botões de navegação
     backToGroupsBtn.addEventListener('click', backToGroupView);
     prevBtn.addEventListener('click', () => {
         if (currentCardIndex > 0) {
@@ -858,8 +1160,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Event listener para a barra de busca
     searchInput.addEventListener('keyup', reloadAndRender);
 
+    // Função para gerar o relatório em HTML
     function renderReportRecursiveHtml(data, keys, level = 0) {
         let html = '';
         const currentKey = keys[level] || 'Grupo';
@@ -883,9 +1187,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     subgroup.forEach(item => {
                         const rawUniqueId = item['CPF:'] || item['E-mail:'];
-                        const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '');
+                        const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
                         const decision = decisions[uniqueId];
-                        const nome = (item['Nome:'] || '').toUpperCase();
+                        const nome = (item['Nome Social:'] && item['Nome Social:'].trim() !== '') ? item['Nome Social:'].toUpperCase() : (item['Nome:'] || '').toUpperCase();
                         const situacao = decision ? decision.status.toUpperCase() : '';
                         const motivo = (decision && decision.motivo) ? decision.motivo : '';
 
@@ -1060,7 +1364,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const naoDeferidas = [];
             processedData.forEach(item => {
                 const rawUniqueId = item['CPF:'] || item['E-mail:'];
-                const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '');
+                const uniqueId = (rawUniqueId || '').toString().replace(/[\.\-]/g, '') +`${item['Submission Date'].toString().replace(/[\:\-\s+\,]/g, '')}`;
                 const decision = decisions[uniqueId];
                 if (decision && decision.status === 'deferida') {
                     deferidas.push(item);
@@ -1151,9 +1455,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   };
   
+  // Quando o usuário clicar no botão, rola suavemente para o topo da página
   window.scrollToTop = function() {
       window.scrollTo({
-          top: 0,
+          top: 150,
           behavior: 'smooth'
       });
   };

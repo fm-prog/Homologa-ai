@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   const fileInput = document.getElementById('fileInput');
   const processBtn = document.getElementById('processBtn');
+  const classificarBtn = document.getElementById('classificacaoBtn');
   const previewSection = document.getElementById('previewSection');
   const previewTable = document.getElementById('previewTable');
   const statsInfo = document.getElementById('statsInfo');
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let duplicatesInfo = [];
   let currentHeaders = [];
   let semHora = false;
+  let allKeys = [];
 
   // Função para mostrar o modal com a mensagem e aplicar a cor de fundo
   function mostrarModal(mensagem, categoria) {
@@ -130,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
       setStatusMessage('Lendo arquivo...', 'neutral');
       processBtn.disabled = true;
       homologacaoBtn.classList.add('hidden');
+      classificarBtn.classList.add('hidden');
       downloadPdfBtn.classList.add('hidden');
       resultsSection.classList.add('hidden');
       previewSection.classList.add('hidden');
@@ -183,7 +186,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const commonKeys = headers.filter(h => 
           h.toLowerCase().includes('cpf')
       );
-  
+
+      allKeys = headers;
+      
       headers.forEach(header => {
           const checkboxDiv = document.createElement('div');
           checkboxDiv.className = 'flex items-center';
@@ -246,6 +251,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
               homologacaoBtn.classList.remove('hidden');
               homologacaoBtn.disabled = false;
+              classificarBtn.classList.remove('hidden');
+              classificarBtn.disabled = false;
               if (duplicatesInfo.length > 0) {
                   downloadPdfBtn.classList.remove('hidden');
                   downloadPdfBtn.disabled = false;
@@ -592,6 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
   homologacaoBtn.addEventListener('click', function() {
 
       if (buttonOrdem.checked){
+
         cleanedData.sort((a, b) => {
           const nomeA = a["Nome:"].toUpperCase(); // Converte para maiúsculas para garantir a ordem correta
           const nomeB = b["Nome:"].toUpperCase(); // Converte para maiúsculas para garantir a ordem correta
@@ -623,6 +631,41 @@ document.addEventListener('DOMContentLoaded', function() {
           mostrarModal('Relatório PDF gerado com sucesso!', 'success');
       }, 100);
   });
+
+  // Adiciona Listenner no botão de Classificação
+  classificarBtn.addEventListener('click', function() {
+
+      if (buttonOrdem.checked){
+        cleanedData.sort((a, b) => {
+          const nomeA = a["Nome:"].toUpperCase(); // Converte para maiúsculas para garantir a ordem correta
+          const nomeB = b["Nome:"].toUpperCase(); // Converte para maiúsculas para garantir a ordem correta
+        
+          if (nomeA < nomeB) {
+            return -1;
+          }
+          if (nomeA > nomeB) {
+            return 1;
+          }
+        
+          return 0;
+        });
+        
+      }
+      
+      localStorage.setItem('processedData', JSON.stringify({
+          data: cleanedData,
+          viewType: 'classificacao'
+      }));
+
+      localStorage.setItem('allKeys', JSON.stringify(allKeys));
+      
+      window.location.href = 'classificacao.html';
+  });
+  
+
+
+
+
   
   // Gera o relatório PDF usando jsPDF e jsPDF-AutoTable
   function generatePdfReport() {
@@ -682,9 +725,10 @@ document.addEventListener('DOMContentLoaded', function() {
                       otherValuesString || '-'
                   ]);
               });
-  
+              
+            
               doc.autoTable({
-                  startY: startY,
+              startY: startY,
                   head: tableHeaders,
                   body: tableRows,
                   theme: 'striped',
